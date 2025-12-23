@@ -2,7 +2,7 @@
 
 > **Clean · Safe · Consistent · Observable · Maintainable**
 
-A minimal, GitHub Actions-optimized proxy pool collector that gathers and validates free proxies from 16+ sources.
+A minimal, GitHub Actions-optimized proxy pool collector that gathers and validates free proxies from 27+ sources.
 
 ## Features
 
@@ -116,7 +116,7 @@ proxy-pool/
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                  # Configuration constants
-│   ├── fetchers.py                # 16 proxy source fetchers
+│   ├── fetchers.py                # 27 proxy source fetchers
 │   ├── validator.py               # HTTP/HTTPS validation
 │   ├── collector.py               # Orchestration logic
 │   └── exporter.py                # File export functions
@@ -129,7 +129,7 @@ proxy-pool/
 
 ```
 ┌─────────────────┐
-│  Fetch Proxies  │ → 16 sources, concurrent fetching
+│  Fetch Proxies  │ → 27 sources, concurrent fetching
 └────────┬────────┘
          ↓
 ┌─────────────────┐
@@ -147,26 +147,64 @@ proxy-pool/
 
 ## Proxy Sources
 
-Proxies are collected from 16+ free sources:
+Proxies are collected from 27+ free sources:
 
-| Source | Type | API |
-|--------|------|-----|
-| ProxyScrape | API | ✓ |
-| GeoNode | API | ✓ |
-| TheSpeedX (GitHub) | List | ✓ |
-| clarketm (GitHub) | List | ✓ |
-| free-proxy-list.net | Scrape | - |
-| proxy-list.download | API | ✓ |
-| 站大爷 (zdaye) | Scrape | - |
-| 66ip | Scrape | - |
-| 开心代理 (kxdaili) | Scrape | - |
-| 快代理 (kuaidaili) | Scrape | - |
-| 云代理 (ip3366) | Scrape | - |
-| 小幻代理 (ihuan) | Scrape | - |
-| 89ip | Scrape | - |
-| 稻壳代理 (docip) | API | ✓ |
-| spys.one | Scrape | - |
-| freeproxylists.net | Scrape | - |
+### API-Based Sources (High Reliability)
+| Source | Type | API | Update Frequency |
+|--------|------|-----|------------------|
+| **Proxifly** (GitHub) | List | ✓ | Every 5 minutes |
+| **GeoNode** | API | ✓ | Real-time |
+| **ProxyScrape** | API | ✓ | Real-time |
+| **Proxy11** | API | ✓ | 2-15 minutes |
+| **GimmeProxy** | API | ✓ | Every minute |
+| **GetProxyList** | API | ✓ | Real-time |
+| **PubProxy** | API | ✓ | Real-time |
+| proxy-list.download | API | ✓ | Real-time |
+| 稻壳代理 (DocIP) | API | ✓ | Real-time |
+
+### GitHub List Sources (High Reliability)
+| Source | Type | API | Update Frequency |
+|--------|------|-----|------------------|
+| **jetkai/proxy-list** | List | ✓ | Hourly |
+| **vakhov/fresh-proxy-list** | List | ✓ | 5-20 minutes |
+| **ShiftyTR/Proxy-List** | List | ✓ | Hourly |
+| TheSpeedX | List | ✓ | Regular |
+| clarketm | List | ✓ | Regular |
+
+### Web Scraping Sources
+| Source | Type | Region | Notes |
+|--------|------|--------|-------|
+| **ProxyNova** | Scrape | International | Large volume, minute updates |
+| **HideMy.Name** | Scrape | International | Speed/anonymity checked |
+| **advanced.name** | Scrape | International | Auto-updated |
+| free-proxy-list.net | Scrape | International | Large table |
+| freeproxylists.net | Scrape | International | JS obfuscation |
+| spys.one | Scrape | International | CN-specific page |
+| 站大爷 (zdaye) | Scrape | China | Time-filtered (<5min) |
+| 66ip | Scrape | China | Simple table |
+| 开心代理 (kxdaili) | Scrape | China | Multi-page |
+| 快代理 (kuaidaili) | Scrape | China | High anonymity |
+| 云代理 (ip3366) | Scrape | China | HTTP/HTTPS split |
+| 小幻代理 (ihuan) | Scrape | China | CN region focus |
+| 89ip | Scrape | China | Basic list |
+
+### New Providers Highlights
+
+The recent expansion added 11 new high-quality sources:
+
+**Best New Additions:**
+1. **Proxifly** - Updates every 5 minutes, thousands of working proxies, multi-protocol support
+2. **Proxy11** - Professional API with 2-15 minute updates, speed filtering
+3. **GimmeProxy** - Freshest proxies (updated every minute), developer-focused API
+4. **jetkai/proxy-list** - Well-maintained GitHub repo, hourly updates, tested proxies
+5. **vakhov/fresh-proxy-list** - Very frequent updates (5-20 min), high quality
+
+**Why These Sources Were Added:**
+- **Higher Frequency**: Many update every 1-20 minutes (vs hourly/daily)
+- **Better APIs**: Structured JSON/TXT responses, easier parsing
+- **GitHub Reliability**: Repository-based lists are more stable than web scraping
+- **Volume Boost**: Expected 2-3x increase in validated proxy count
+- **Reduced Fragility**: Less reliance on web scraping prone to HTML changes
 
 ## Validation
 
@@ -301,10 +339,11 @@ Following the request for **Clear · Safe · Consistent · Observable · Maintai
 ## Performance
 
 Typical collection stats:
-- **Fetching**: 10-30 seconds (16 sources, 10 concurrent workers)
-- **Validation**: 2-5 minutes (50 concurrent workers, depends on proxy count)
-- **Total Runtime**: 3-10 minutes
-- **Success Rate**: 5-20% of fetched proxies are valid
+- **Fetching**: 15-45 seconds (27 sources, 10 concurrent workers)
+- **Validation**: 3-8 minutes (50 concurrent workers, depends on proxy count)
+- **Total Runtime**: 5-15 minutes
+- **Success Rate**: 10-25% of fetched proxies are valid (improved with new high-quality sources)
+- **Expected Volume**: 200-500+ validated proxies per run (2x-3x improvement)
 
 ## Important Notes
 

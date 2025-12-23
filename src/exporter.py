@@ -24,8 +24,11 @@ def export_to_txt(proxies: list[ProxyInfo], output_dir: Path) -> int:
     """
     output_file = output_dir / "proxies.txt"
     with open(output_file, "w") as f:
-        for proxy in proxies:
-            f.write(f"{proxy.proxy}\n")
+        if not proxies:
+            f.write("# No proxies available\n")
+        else:
+            for proxy in proxies:
+                f.write(f"{proxy.proxy}\n")
 
     logger.info(f"Exported {len(proxies)} proxies to {output_file}")
     return len(proxies)
@@ -80,8 +83,11 @@ def export_http_proxies(proxies: list[ProxyInfo], output_dir: Path) -> int:
     """
     output_file = output_dir / "http_proxies.txt"
     with open(output_file, "w") as f:
-        for proxy in proxies:
-            f.write(f"http://{proxy.proxy}\n")
+        if not proxies:
+            f.write("# No HTTP proxies available\n")
+        else:
+            for proxy in proxies:
+                f.write(f"http://{proxy.proxy}\n")
 
     logger.info(f"Exported {len(proxies)} HTTP proxies to {output_file}")
     return len(proxies)
@@ -102,8 +108,11 @@ def export_https_proxies(proxies: list[ProxyInfo], output_dir: Path) -> int:
     output_file = output_dir / "https_proxies.txt"
 
     with open(output_file, "w") as f:
-        for proxy in https_proxies:
-            f.write(f"https://{proxy.proxy}\n")
+        if not https_proxies:
+            f.write("# No HTTPS proxies available\n")
+        else:
+            for proxy in https_proxies:
+                f.write(f"https://{proxy.proxy}\n")
 
     logger.info(f"Exported {len(https_proxies)} HTTPS proxies to {output_file}")
     return len(https_proxies)
@@ -279,12 +288,11 @@ def export_all(
 
     if not proxies:
         logger.warning("No proxies to export!")
-        # Create empty files so workflow doesn't fail
-        for filename in ["proxies.txt", "http_proxies.txt", "https_proxies.txt"]:
-            (output_dir / filename).write_text("")
-        (output_dir / "proxies.json").write_text(
-            json.dumps({"count": 0, "updated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"), "proxies": []})
-        )
+        # Export functions will create files with placeholder comments
+        export_to_txt([], output_dir)
+        export_to_json([], output_dir)
+        export_http_proxies([], output_dir)
+        export_https_proxies([], output_dir)
         generate_readme(0, 0, 0, output_dir, repo_name)
         return {"total": 0, "http": 0, "https": 0}
 
