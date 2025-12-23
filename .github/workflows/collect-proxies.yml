@@ -1,0 +1,110 @@
+name: Collect and Release Proxies
+
+on:
+  # Run daily at 00:00 UTC
+  schedule:
+    - cron: '0 0 * * *'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+  # Run on push to main (for testing)
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  collect-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Collect and validate proxies
+        id: collect
+        run: |
+          echo "Starting proxy collection..."
+          python main.py --repo-name "${{ github.repository }}"
+
+          # Get proxy count
+          if [ -f proxies.txt ]; then
+            PROXY_COUNT=$(wc -l < proxies.txt | tr -d ' ')
+            echo "count=$PROXY_COUNT" >> $GITHUB_OUTPUT
+            echo "Collected $PROXY_COUNT proxies"
+          else
+            echo "count=0" >> $GITHUB_OUTPUT
+            echo "No proxies collected"
+          fi
+
+      - name: Verify export files
+        run: |
+          echo "=== Verifying exported files ==="
+          for file in proxies.txt proxies.json http_proxies.txt https_proxies.txt README.md; do
+            if [ -f "$file" ]; then
+              echo "✓ $file exists ($(wc -l < "$file" 2>/dev/null || echo 'N/A') lines)"
+            else
+              echo "✗ $file missing"
+              exit 1
+            fi
+          done
+
+      - name: Generate release info
+        id: release_info
+        run: |
+          TAG="proxies-$(date +'%Y%m%d-%H%M%S')"
+          DATE=$(date +'%Y-%m-%d %H:%M:%S UTC')
+          COUNT="${{ steps.collect.outputs.count }}"
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "name=Proxy Pool - $COUNT proxies - $DATE" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag }}
+          name: ${{ steps.release_info.outputs.name }}
+          body_path: README.md
+          files: |
+            proxies.txt
+            proxies.json
+            http_proxies.txt
+            https_proxies.txt
+            README.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up old releases
+        uses: dev-drprasad/delete-older-releases@v0.3.4
+        with:
+          keep_latest: 30
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "### Proxy Collection Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Proxies**: ${{ steps.collect.outputs.count }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release**: ${{ steps.release_info.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date**: ${{ steps.release_info.outputs.date }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download latest proxies:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "curl -L https://github.com/${{ github.repository }}/releases/latest/download/proxies.txt -o proxies.txt" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
