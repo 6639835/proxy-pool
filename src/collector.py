@@ -11,7 +11,9 @@ from .validator import ProxyInfo, validate_proxy
 logger = logging.getLogger(__name__)
 
 
-def fetch_from_source(source_name: str, fetcher_func: callable) -> list[tuple[str, str]]:
+def fetch_from_source(
+    source_name: str, fetcher_func: callable
+) -> list[tuple[str, str]]:
     """
     Fetch proxies from a single source.
 
@@ -122,7 +124,9 @@ def validate_proxies(proxy_map: dict[str, str]) -> Iterator[ProxyInfo]:
 
             # Progress update every 10 proxies
             if i % 10 == 0:
-                logger.info(f"Progress: {i}/{total} validated ({validated_count} valid, {failed_count} failed)")
+                logger.info(
+                    f"Progress: {i}/{total} validated ({validated_count} valid, {failed_count} failed)"
+                )
 
     logger.info(f"Validation complete: {validated_count} valid, {failed_count} failed")
 

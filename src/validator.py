@@ -94,7 +94,7 @@ def test_https(proxy: str) -> bool:
 
     try:
         response = requests.head(
-            HTTPS_URL,
+            HTTPS_TEST_URL,
             headers=VALIDATION_HEADERS,
             proxies=proxies,
             timeout=VALIDATION_TIMEOUT,

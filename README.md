@@ -2,7 +2,7 @@
 
 > **Clean · Safe · Consistent · Observable · Maintainable**
 
-A minimal, GitHub Actions-optimized proxy pool collector that gathers and validates free proxies from 59+ sources.
+A minimal, GitHub Actions-optimized proxy pool collector that gathers and validates free proxies from 68+ sources.
 
 ## Features
 
@@ -116,7 +116,7 @@ proxy-pool/
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                  # Configuration constants
-│   ├── fetchers.py                # 59 proxy source fetchers
+│   ├── fetchers.py                # 68 proxy source fetchers
 │   ├── validator.py               # HTTP/HTTPS validation
 │   ├── collector.py               # Orchestration logic
 │   └── exporter.py                # File export functions
@@ -129,7 +129,7 @@ proxy-pool/
 
 ```
 ┌─────────────────┐
-│  Fetch Proxies  │ → 59 sources, concurrent fetching
+│  Fetch Proxies  │ → 68 sources, concurrent fetching
 └────────┬────────┘
          ↓
 ┌─────────────────┐
@@ -147,7 +147,7 @@ proxy-pool/
 
 ## Proxy Sources
 
-Proxies are collected from 59+ free sources (expanded from 37 → 52 → 59):
+Proxies are collected from 68+ free sources (expanded from 37 → 52 → 59 → 68):
 
 ### API-Based Sources (High Reliability)
 | Source | Type | API | Update Frequency |
@@ -186,6 +186,13 @@ Proxies are collected from 59+ free sources (expanded from 37 → 52 → 59):
 | **mmpx12/proxy-list** | List | ✓ | Hourly |
 | **proxy4parsing/proxy-list** | List | ✓ | Frequent |
 | **Niek/free-proxy-list** | List | ✓ | Regular |
+| **gfpcom/free-proxy-list** | List | ✓ | Every 30 minutes |
+| **officialputuid/KangProxy** | List | ✓ | Daily |
+| **Zaeem20/FREE_PROXIES_LIST** | List | ✓ | Every 10 minutes |
+| **r00tee/Proxy-List** | List | ✓ | Every 5 minutes |
+| **thenasty1337/free-proxy-list** | List | ✓ | Every 6 hours |
+| **Anonym0usWork1221/Free-Proxies** | List | ✓ | Every 2 hours |
+| **theriturajps/proxy-list** | List | ✓ | Hourly |
 
 ### Web Scraping Sources
 | Source | Type | Region | Notes |
@@ -219,10 +226,26 @@ Proxies are collected from 59+ free sources (expanded from 37 → 52 → 59):
 | **ProxyRack** | Scrape | International | Every 10 minutes |
 | **OpenProxyList.com** | Scrape | International | Regular updates |
 | **ProxyOrbit.com** | Scrape | International | Free database |
+| **ProxyScan.io** | API | International | Hourly updates |
+| **RedScrape** | API | International | Every 10 minutes |
 
 ### New Providers Highlights (Dec 2025 Expansion)
 
-The latest expansion added 22 new high-quality sources (from 37 to 59):
+**Latest Update (Dec 2025 - Part 3):**
+Added 9 new sources (from 59 to 68):
+
+1. **gfpcom/free-proxy-list** - Updated every 30 minutes, massive proxy pool with HTTP/HTTPS/SOCKS4/5
+2. **officialputuid/KangProxy** - Daily validated, multi-protocol support
+3. **Zaeem20/FREE_PROXIES_LIST** - Every 10 minutes updates, HTTP/HTTPS
+4. **r00tee/Proxy-List** - **Ultra-fresh** updates every 5 minutes!, HTTPS/SOCKS4/5
+5. **thenasty1337/free-proxy-list** - Every 6 hours, comprehensive proxy types
+6. **Anonym0usWork1221/Free-Proxies** - Every 2 hours, well-maintained
+7. **theriturajps/proxy-list** - Hourly updates, 40k+ proxies
+8. **ProxyScan.io** - API with hourly updates, flexible filtering
+9. **RedScrape** - Every 10 minutes, fresh proxies
+
+**Previous Expansion (Dec 2025 - Part 2):**
+Added 22 new high-quality sources (from 37 to 59):
 
 **Best New Additions (Dec 2025 - Final):**
 1. **prxchk/proxy-list** - **Fastest updates** (every 10 minutes!), highly anonymous proxies
@@ -238,7 +261,7 @@ The latest expansion added 22 new high-quality sources (from 37 to 59):
 11. **Spys.me** - 29K+ proxies from 180 countries
 12. **ProxySpace.pro** - Every 20 minutes, verified proxies
 
-**Previous Expansion (Nov 2025):**
+**Initial Expansion (Nov 2025):**
 1. **Proxifly** - Updates every 5 minutes, thousands of working proxies
 2. **Proxy11** - Professional API with 2-15 minute updates
 3. **jetkai/proxy-list** - Well-maintained GitHub repo, hourly updates
@@ -246,12 +269,14 @@ The latest expansion added 22 new high-quality sources (from 37 to 59):
 5. **HendrikBGR** - API + GitHub, scraped from 60+ sites
 
 **Why These Sources Were Added:**
-- **Higher Frequency**: Many update every 10-30 minutes (prxchk every 10 min, IPRoyal/ProxyRack every 10 min)
-- **Better APIs**: Structured JSON/TXT responses, easier parsing
-- **GitHub Reliability**: 12 new repository-based lists, more stable than web scraping
-- **Volume Boost**: Expected 8-10x increase in validated proxy count (ErcinDedeoglu 43K+, mmpx12 includes VPN/TOR)
+- **Ultra-High Frequency**: r00tee updates every 5 minutes (fastest!), Zaeem20/RedScrape every 10 minutes
+- **Massive Volume**: theriturajps (40k+ proxies), gfpcom (massive pool)
+- **GitHub Reliability**: 19 repository-based lists total, more stable than web scraping
+- **Volume Boost**: Expected 10-15x increase in validated proxy count (ErcinDedeoglu 43K+, theriturajps 40K+)
+- **Better APIs**: ProxyScan.io and RedScrape provide structured responses
 - **Reduced Fragility**: Less reliance on web scraping prone to HTML changes
-- **Protocol Diversity**: Better SOCKS4/5 coverage (hookzof, roosterkid, mmpx12, proxy4parsing)
+- **Protocol Diversity**: Better SOCKS4/5 coverage (r00tee, gfpcom, thenasty)
+- **Update Frequency**: More sources with sub-hourly updates for fresher proxies
 - **Geographic Coverage**: US/UK specific sources, 180+ countries via Spys.me
 - **Specialized Sources**: SOCKS5-only (hookzof), V2Ray (roosterkid), VPN/TOR nodes (mmpx12), Telegram (proxy4parsing)
 
@@ -388,11 +413,11 @@ Following the request for **Clear · Safe · Consistent · Observable · Maintai
 ## Performance
 
 Typical collection stats:
-- **Fetching**: 40-100 seconds (59 sources, 10 concurrent workers)
-- **Validation**: 5-20 minutes (50 concurrent workers, depends on proxy count)
-- **Total Runtime**: 10-30 minutes
+- **Fetching**: 50-120 seconds (68 sources, 10 concurrent workers)
+- **Validation**: 5-25 minutes (50 concurrent workers, depends on proxy count)
+- **Total Runtime**: 10-35 minutes
 - **Success Rate**: 15-30% of fetched proxies are valid (improved with new high-quality GitHub sources)
-- **Expected Volume**: 800-2000+ validated proxies per run (8x-10x improvement from 59 sources)
+- **Expected Volume**: 1000-3000+ validated proxies per run (10x-15x improvement from 68 sources)
 
 ## Important Notes
 

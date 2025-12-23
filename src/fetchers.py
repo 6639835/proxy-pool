@@ -25,7 +25,9 @@ def get_headers() -> dict[str, str]:
     }
 
 
-def safe_request(url: str, timeout: int = REQUEST_TIMEOUT, **kwargs) -> requests.Response | None:
+def safe_request(
+    url: str, timeout: int = REQUEST_TIMEOUT, **kwargs
+) -> requests.Response | None:
     """Make a safe HTTP request with error handling."""
     try:
         response = requests.get(url, headers=get_headers(), timeout=timeout, **kwargs)
@@ -49,7 +51,9 @@ def fetch_zdaye() -> Iterator[str]:
             return
 
         latest_time = datetime.strptime(latest_time_str[0].strip(), "%Y/%m/%d %H:%M:%S")
-        if (datetime.now() - latest_time).seconds >= 300:  # Only collect if updated within 5 minutes
+        if (
+            datetime.now() - latest_time
+        ).seconds >= 300:  # Only collect if updated within 5 minutes
             return
 
         page_url = tree.xpath("//h3[@class='thread_title']/a/@href")
@@ -70,7 +74,9 @@ def fetch_zdaye() -> Iterator[str]:
                     yield f"{ip}:{port}"
 
             next_page = page_tree.xpath("//div[@class='page']/a[@title='下一页']/@href")
-            target_url = f"https://www.zdaye.com/{next_page[0].strip()}" if next_page else None
+            target_url = (
+                f"https://www.zdaye.com/{next_page[0].strip()}" if next_page else None
+            )
             if target_url:
                 sleep(2)
     except Exception as e:
@@ -99,7 +105,7 @@ def fetch_kxdaili() -> Iterator[str]:
     """开心代理 http://www.kxdaili.com/"""
     urls = [
         "http://www.kxdaili.com/dailiip.html",
-        "http://www.kxdaili.com/dailiip/2/1.html"
+        "http://www.kxdaili.com/dailiip/2/1.html",
     ]
     for url in urls:
         try:
@@ -124,7 +130,7 @@ def fetch_freeproxylists() -> Iterator[str]:
 
         response = safe_request(
             "https://www.freeproxylists.net/zh/?c=CN&pt=&pr=&a%5B%5D=0&a%5B%5D=1&a%5B%5D=2&u=50",
-            verify=False
+            verify=False,
         )
         if not response:
             return
@@ -135,7 +141,9 @@ def fetch_freeproxylists() -> Iterator[str]:
             port = "".join(tr.xpath("./td[2]/text()")).strip()
 
             if ip_script and port:
-                ips = re.findall(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', unquote(ip_script))
+                ips = re.findall(
+                    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", unquote(ip_script)
+                )
                 if ips:
                     yield f"{ips[0]}:{port}"
     except Exception as e:
@@ -146,7 +154,7 @@ def fetch_kuaidaili() -> Iterator[str]:
     """快代理 https://www.kuaidaili.com/"""
     patterns = [
         "https://www.kuaidaili.com/free/inha/{}/",
-        "https://www.kuaidaili.com/free/intr/{}/"
+        "https://www.kuaidaili.com/free/intr/{}/",
     ]
 
     for page in range(1, 2):  # Only first page to avoid rate limiting
@@ -169,7 +177,10 @@ def fetch_kuaidaili() -> Iterator[str]:
 
 def fetch_ip3366() -> Iterator[str]:
     """云代理 http://www.ip3366.net/"""
-    urls = ["http://www.ip3366.net/free/?stype=1", "http://www.ip3366.net/free/?stype=2"]
+    urls = [
+        "http://www.ip3366.net/free/?stype=1",
+        "http://www.ip3366.net/free/?stype=2",
+    ]
     for url in urls:
         try:
             response = safe_request(url)
@@ -177,8 +188,8 @@ def fetch_ip3366() -> Iterator[str]:
                 continue
 
             proxies = re.findall(
-                r'<td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td>[\s\S]*?<td>(\d+)</td>',
-                response.text
+                r"<td>(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})</td>[\s\S]*?<td>(\d+)</td>",
+                response.text,
             )
             for proxy in proxies:
                 yield f"{proxy[0]}:{proxy[1]}"
@@ -194,8 +205,8 @@ def fetch_ihuan() -> Iterator[str]:
             return
 
         proxies = re.findall(
-            r'>\s*?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*?</a></td><td>(\d+)</td>',
-            response.text
+            r">\s*?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*?</a></td><td>(\d+)</td>",
+            response.text,
         )
         for proxy in proxies:
             yield f"{proxy[0]}:{proxy[1]}"
@@ -211,8 +222,8 @@ def fetch_89ip() -> Iterator[str]:
             return
 
         proxies = re.findall(
-            r'<td.*?>[\s\S]*?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})[\s\S]*?</td>[\s\S]*?<td.*?>[\s\S]*?(\d+)[\s\S]*?</td>',
-            response.text
+            r"<td.*?>[\s\S]*?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})[\s\S]*?</td>[\s\S]*?<td.*?>[\s\S]*?(\d+)[\s\S]*?</td>",
+            response.text,
         )
         for proxy in proxies:
             yield f"{proxy[0]}:{proxy[1]}"
@@ -244,9 +255,9 @@ def fetch_proxyscrape() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy:
+            if proxy and ":" in proxy:
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_proxyscrape error: {e}")
@@ -265,9 +276,9 @@ def fetch_speedx() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy:
+                if proxy and ":" in proxy:
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_speedx error for {url}: {e}")
@@ -302,9 +313,9 @@ def fetch_proxylist_download() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy:
+                if proxy and ":" in proxy:
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_proxylist_download error for {url}: {e}")
@@ -337,9 +348,11 @@ def fetch_spysone() -> Iterator[str]:
             return
 
         tree = etree.HTML(response.content)
-        if tree.xpath('//body'):
-            body_text = tree.xpath('//body')[0].text_content()
-            proxies = re.findall(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', body_text)
+        if tree.xpath("//body"):
+            body_text = tree.xpath("//body")[0].text_content()
+            proxies = re.findall(
+                r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", body_text
+            )
             for proxy in proxies:
                 yield f"{proxy[0]}:{proxy[1]}"
     except Exception as e:
@@ -354,9 +367,9 @@ def fetch_clarketm() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy and not proxy.startswith('#'):
+            if proxy and ":" in proxy and not proxy.startswith("#"):
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_clarketm error: {e}")
@@ -375,9 +388,9 @@ def fetch_proxifly() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_proxifly error for {url}: {e}")
@@ -419,9 +432,9 @@ def fetch_pubproxy() -> Iterator[str]:
                 continue
 
             # Response format: ip:port one per line
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy:
+                if proxy and ":" in proxy:
                     yield proxy
             sleep(1)  # Rate limiting
     except Exception as e:
@@ -440,9 +453,9 @@ def fetch_proxy11() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
             sleep(1)
     except Exception as e:
@@ -482,9 +495,9 @@ def fetch_jetkai() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_jetkai error for {url}: {e}")
@@ -502,9 +515,9 @@ def fetch_vakhov() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy:
+                if proxy and ":" in proxy:
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_vakhov error for {url}: {e}")
@@ -522,9 +535,9 @@ def fetch_shiftytr() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy:
+                if proxy and ":" in proxy:
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_shiftytr error for {url}: {e}")
@@ -545,7 +558,7 @@ def fetch_proxynova() -> Iterator[str]:
 
             if ip_parts and port:
                 ip = "".join([p.strip() for p in ip_parts if p.strip()])
-                if ip and '.' in ip:
+                if ip and "." in ip:
                     yield f"{ip}:{port}"
     except Exception as e:
         logger.debug(f"fetch_proxynova error: {e}")
@@ -577,8 +590,7 @@ def fetch_advanced_name() -> Iterator[str]:
 
         # Extract proxies using regex (format varies)
         proxies = re.findall(
-            r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-            response.text
+            r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", response.text
         )
         for proxy in proxies:
             yield f"{proxy[0]}:{proxy[1]}"
@@ -600,9 +612,9 @@ def fetch_komutan234() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_komutan234 error for {url}: {e}")
@@ -616,9 +628,9 @@ def fetch_iplocate() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy and not proxy.startswith('#'):
+            if proxy and ":" in proxy and not proxy.startswith("#"):
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_iplocate error: {e}")
@@ -638,9 +650,9 @@ def fetch_proxyscraper() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_proxyscraper error for {url}: {e}")
@@ -654,7 +666,7 @@ def fetch_hendrikbgr() -> Iterator[str]:
         response = safe_request(api_url, timeout=20)
         if response and response.text.strip():
             proxy = response.text.strip()
-            if proxy and ':' in proxy:
+            if proxy and ":" in proxy:
                 yield proxy
 
         # Also fetch from raw GitHub list
@@ -663,9 +675,9 @@ def fetch_hendrikbgr() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy and not proxy.startswith('#'):
+            if proxy and ":" in proxy and not proxy.startswith("#"):
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_hendrikbgr error: {e}")
@@ -706,12 +718,15 @@ def fetch_freeproxycz() -> Iterator[str]:
             if proxy_script:
                 # Pattern: decode("base64string")
                 import base64
+
                 b64_matches = re.findall(r'decode\("([^"]+)"\)', proxy_script)
                 if b64_matches:
                     try:
-                        decoded = base64.b64decode(b64_matches[0]).decode('utf-8')
+                        decoded = base64.b64decode(b64_matches[0]).decode("utf-8")
                         # Extract IP:PORT from decoded string
-                        proxy_match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', decoded)
+                        proxy_match = re.search(
+                            r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", decoded
+                        )
                         if proxy_match:
                             yield f"{proxy_match.group(1)}:{proxy_match.group(2)}"
                     except Exception:
@@ -766,9 +781,11 @@ def fetch_proxydb() -> Iterator[str]:
         for tr in tree.xpath("//table//tr")[1:]:  # Skip header
             # ProxyDB shows proxy in format ip:port
             proxy_text = "".join(tr.xpath("./td[1]//text()")).strip()
-            if proxy_text and ':' in proxy_text:
+            if proxy_text and ":" in proxy_text:
                 # Extract IP:PORT pattern
-                match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', proxy_text)
+                match = re.search(
+                    r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", proxy_text
+                )
                 if match:
                     yield f"{match.group(1)}:{match.group(2)}"
     except Exception as e:
@@ -806,9 +823,9 @@ def fetch_monosans() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_monosans error for {url}: {e}")
@@ -828,9 +845,9 @@ def fetch_ercindedeoglu() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_ercindedeoglu error for {url}: {e}")
@@ -844,9 +861,9 @@ def fetch_xorro() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy and not proxy.startswith('#'):
+            if proxy and ":" in proxy and not proxy.startswith("#"):
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_xorro error: {e}")
@@ -866,9 +883,9 @@ def fetch_prxchk() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_prxchk error for {url}: {e}")
@@ -885,9 +902,9 @@ def fetch_a2u() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_a2u error for {url}: {e}")
@@ -901,9 +918,9 @@ def fetch_hookzof() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy and not proxy.startswith('#'):
+            if proxy and ":" in proxy and not proxy.startswith("#"):
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_hookzof error: {e}")
@@ -922,9 +939,9 @@ def fetch_roosterkid() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_roosterkid error for {url}: {e}")
@@ -943,9 +960,9 @@ def fetch_aliilapro() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_aliilapro error for {url}: {e}")
@@ -962,9 +979,9 @@ def fetch_sunny9577() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_sunny9577 error for {url}: {e}")
@@ -973,7 +990,9 @@ def fetch_sunny9577() -> Iterator[str]:
 def fetch_proxylistplus() -> Iterator[str]:
     """ProxyListPlus (hundreds of thousands of proxies daily)"""
     try:
-        response = safe_request("https://list.proxylistplus.com/Fresh-HTTP-Proxy-List-1")
+        response = safe_request(
+            "https://list.proxylistplus.com/Fresh-HTTP-Proxy-List-1"
+        )
         if not response:
             return
 
@@ -998,7 +1017,7 @@ def fetch_gatherproxy() -> Iterator[str]:
         # Extract proxies from the page source using regex
         proxies = re.findall(
             r'gp\.insertPrx\(\{"PROXY_IP":"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})","PROXY_PORT":"([0-9a-fA-F]+)"',
-            response.text
+            response.text,
         )
         for proxy in proxies:
             ip = proxy[0]
@@ -1019,9 +1038,9 @@ def fetch_proxyspace() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             proxy = line.strip()
-            if proxy and ':' in proxy:
+            if proxy and ":" in proxy:
                 yield proxy
     except Exception as e:
         logger.debug(f"fetch_proxyspace error: {e}")
@@ -1068,12 +1087,12 @@ def fetch_spysme() -> Iterator[str]:
         if not response:
             return
 
-        for line in response.text.split('\n'):
+        for line in response.text.split("\n"):
             # Format is IP:PORT with additional info
             proxy = line.strip().split()[0] if line.strip() else ""
-            if proxy and ':' in proxy:
+            if proxy and ":" in proxy:
                 # Validate IP:PORT format
-                match = re.match(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', proxy)
+                match = re.match(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", proxy)
                 if match:
                     yield proxy
     except Exception as e:
@@ -1094,9 +1113,9 @@ def fetch_mmpx12() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_mmpx12 error for {url}: {e}")
@@ -1116,9 +1135,9 @@ def fetch_proxy4parsing() -> Iterator[str]:
             if not response:
                 continue
 
-            for line in response.text.split('\n'):
+            for line in response.text.split("\n"):
                 proxy = line.strip()
-                if proxy and ':' in proxy and not proxy.startswith('#'):
+                if proxy and ":" in proxy and not proxy.startswith("#"):
                     yield proxy
         except Exception as e:
             logger.debug(f"fetch_proxy4parsing error for {url}: {e}")
@@ -1171,9 +1190,11 @@ def fetch_openproxylist() -> Iterator[str]:
         # Extract proxies from the page
         for tr in tree.xpath("//table//tr")[1:]:  # Skip header
             proxy_text = "".join(tr.xpath("./td[1]//text()")).strip()
-            if proxy_text and ':' in proxy_text:
+            if proxy_text and ":" in proxy_text:
                 # Extract IP:PORT pattern
-                match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', proxy_text)
+                match = re.search(
+                    r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", proxy_text
+                )
                 if match:
                     yield f"{match.group(1)}:{match.group(2)}"
     except Exception as e:
@@ -1190,8 +1211,7 @@ def fetch_niekproxy() -> Iterator[str]:
 
         # Extract proxies using regex since it's a rendered page
         proxies = re.findall(
-            r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)',
-            response.text
+            r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)", response.text
         )
         for proxy in proxies:
             yield f"{proxy[0]}:{proxy[1]}"
@@ -1216,6 +1236,176 @@ def fetch_proxyorbit() -> Iterator[str]:
         logger.debug(f"fetch_proxyorbit error: {e}")
 
 
+def fetch_gfpcom() -> Iterator[str]:
+    """GitHub gfpcom/free-proxy-list (updated every 30 minutes, massive pool)"""
+    urls = [
+        "https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/lists/http.txt",
+        "https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/lists/https.txt",
+        "https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/lists/socks4.txt",
+        "https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/lists/socks5.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split("\n"):
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_gfpcom error for {url}: {e}")
+
+
+def fetch_kangproxy() -> Iterator[str]:
+    """GitHub officialputuid/KangProxy (daily validated, multi-protocol)"""
+    urls = [
+        "https://raw.githubusercontent.com/officialputuid/KangProxy/main/xResults/Proxies.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split("\n"):
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_kangproxy error for {url}: {e}")
+
+
+def fetch_zaeem20() -> Iterator[str]:
+    """GitHub Zaeem20/FREE_PROXIES_LIST (updated every 10 minutes)"""
+    urls = [
+        "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/http.txt",
+        "https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/https.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split("\n"):
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_zaeem20 error for {url}: {e}")
+
+
+def fetch_proxyscan() -> Iterator[str]:
+    """ProxyScan.io API (updated hourly, with filters)"""
+    try:
+        url = "https://www.proxyscan.io/api/proxy?limit=500&format=txt&type=http,https,socks4,socks5"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.split("\n"):
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxyscan error: {e}")
+
+
+def fetch_r00tee() -> Iterator[str]:
+    """GitHub r00tee/Proxy-List (updated every 5 minutes, very fresh)"""
+    urls = [
+        "https://raw.githubusercontent.com/r00tee/Proxy-List/main/Https.txt",
+        "https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks4.txt",
+        "https://raw.githubusercontent.com/r00tee/Proxy-List/main/Socks5.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split("\n"):
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_r00tee error for {url}: {e}")
+
+
+def fetch_thenasty() -> Iterator[str]:
+    """GitHub thenasty1337/free-proxy-list (updated every 6 hours)"""
+    urls = [
+        "https://raw.githubusercontent.com/thenasty1337/free-proxy-list/main/data/latest/proxies.txt",
+        "https://raw.githubusercontent.com/thenasty1337/free-proxy-list/main/data/latest/types/http/proxies.txt",
+        "https://raw.githubusercontent.com/thenasty1337/free-proxy-list/main/data/latest/types/socks4/proxies.txt",
+        "https://raw.githubusercontent.com/thenasty1337/free-proxy-list/main/data/latest/types/socks5/proxies.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split("\n"):
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_thenasty error for {url}: {e}")
+
+
+def fetch_anonym0uswork() -> Iterator[str]:
+    """GitHub Anonym0usWork1221/Free-Proxies (updated every 2 hours)"""
+    try:
+        # This repo structure may vary, check for common proxy list patterns
+        url = "https://raw.githubusercontent.com/Anonym0usWork1221/Free-Proxies/main/proxy_files/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.split("\n"):
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_anonym0uswork error: {e}")
+
+
+def fetch_theriturajps() -> Iterator[str]:
+    """GitHub theriturajps/proxy-list (updated hourly, 40k+ proxies)"""
+    try:
+        url = "https://raw.githubusercontent.com/theriturajps/proxy-list/main/proxy.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.split("\n"):
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_theriturajps error: {e}")
+
+
+def fetch_redscrape() -> Iterator[str]:
+    """RedScrape proxy list (updated every 10 minutes)"""
+    try:
+        # RedScrape typically provides API or downloadable lists
+        # This URL may need adjustment based on their current API endpoint
+        response = safe_request("https://redscrape.com/api/proxies/txt", timeout=20)
+        if not response:
+            return
+
+        for line in response.text.split("\n"):
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_redscrape error: {e}")
+
+
 # Registry of all fetcher functions
 FETCHERS: dict[str, callable] = {
     # Original Chinese sources
@@ -1227,7 +1417,6 @@ FETCHERS: dict[str, callable] = {
     "ihuan": fetch_ihuan,
     "89ip": fetch_89ip,
     "docip": fetch_docip,
-
     # Original international sources
     "freeproxylists": fetch_freeproxylists,
     "proxyscrape": fetch_proxyscrape,
@@ -1237,7 +1426,6 @@ FETCHERS: dict[str, callable] = {
     "geonode": fetch_geonode,
     "spysone": fetch_spysone,
     "clarketm": fetch_clarketm,
-
     # API-based sources (high reliability)
     "proxifly": fetch_proxifly,
     "getproxylist": fetch_getproxylist,
@@ -1245,7 +1433,6 @@ FETCHERS: dict[str, callable] = {
     "proxy11": fetch_proxy11,
     "gimmeproxy": fetch_gimmeproxy,
     "hendrikbgr": fetch_hendrikbgr,
-
     # GitHub sources (high reliability)
     "jetkai": fetch_jetkai,
     "vakhov": fetch_vakhov,
@@ -1262,12 +1449,10 @@ FETCHERS: dict[str, callable] = {
     "roosterkid": fetch_roosterkid,
     "aliilapro": fetch_aliilapro,
     "sunny9577": fetch_sunny9577,
-
     # New GitHub sources (comprehensive list)
     "mmpx12": fetch_mmpx12,
     "proxy4parsing": fetch_proxy4parsing,
     "niekproxy": fetch_niekproxy,
-
     # Web scraping sources
     "proxynova": fetch_proxynova,
     "hidemy": fetch_hidemy,
@@ -1288,4 +1473,14 @@ FETCHERS: dict[str, callable] = {
     "proxyrack": fetch_proxyrack,
     "openproxylist": fetch_openproxylist,
     "proxyorbit": fetch_proxyorbit,
+    # New high-quality sources (added December 2025)
+    "gfpcom": fetch_gfpcom,
+    "kangproxy": fetch_kangproxy,
+    "zaeem20": fetch_zaeem20,
+    "proxyscan": fetch_proxyscan,
+    "r00tee": fetch_r00tee,
+    "thenasty": fetch_thenasty,
+    "anonym0uswork": fetch_anonym0uswork,
+    "theriturajps": fetch_theriturajps,
+    "redscrape": fetch_redscrape,
 }

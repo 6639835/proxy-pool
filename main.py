@@ -21,11 +21,12 @@ import sys
 import warnings
 from pathlib import Path
 
+from src.config import LOG_LEVEL
+
 # Suppress SSL warnings from requests
 warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
 # Setup logging
-from src.config import LOG_LEVEL
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL),
@@ -87,7 +88,7 @@ def main() -> int:
         logger.info(f"  Output directory: {args.output_dir.absolute()}")
         logger.info("=" * 60)
 
-        if stats['total'] == 0:
+        if stats["total"] == 0:
             logger.warning("No proxies were collected. Exit code: 1")
             return 1
 
