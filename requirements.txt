@@ -1,3 +1,4 @@
 # Minimal dependencies for proxy collection
 requests>=2.31.0
+httpx>=0.27.0
 lxml>=4.9.3

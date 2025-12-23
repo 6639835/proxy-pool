@@ -6,11 +6,11 @@ from typing import Final
 # Validation settings
 HTTP_TEST_URL: Final[str] = os.getenv("HTTP_TEST_URL", "http://httpbin.org/ip")
 HTTPS_TEST_URL: Final[str] = os.getenv("HTTPS_TEST_URL", "https://www.qq.com")
-VALIDATION_TIMEOUT: Final[int] = int(os.getenv("VALIDATION_TIMEOUT", "10"))
+VALIDATION_TIMEOUT: Final[int] = int(os.getenv("VALIDATION_TIMEOUT", "5"))
 
 # Concurrency settings
 MAX_FETCH_WORKERS: Final[int] = int(os.getenv("MAX_FETCH_WORKERS", "10"))
-MAX_VALIDATION_WORKERS: Final[int] = int(os.getenv("MAX_VALIDATION_WORKERS", "50"))
+MAX_VALIDATION_WORKERS: Final[int] = int(os.getenv("MAX_VALIDATION_WORKERS", "300"))
 
 # User agents for requests
 USER_AGENTS: Final[list[str]] = [

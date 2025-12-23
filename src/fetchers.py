@@ -1526,6 +1526,394 @@ def fetch_proxylist_hub() -> Iterator[str]:
         logger.debug(f"fetch_proxylist_hub error: {e}")
 
 
+def fetch_proxyscrape_json() -> Iterator[str]:
+    """ProxyScrape v3 JSON API (community validated)"""
+    try:
+        url = "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&format=json"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, dict):
+            for p in data.get("proxies", []):
+                if isinstance(p, dict):
+                    ip = p.get("ip")
+                    port = p.get("port")
+                    if ip and port:
+                        yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxyscrape_json error: {e}")
+
+
+def fetch_netnut_sample() -> Iterator[str]:
+    """NetNut public proxy sample"""
+    try:
+        response = safe_request("https://netnut.io/free-proxies/")
+        if not response:
+            return
+        matches = re.findall(r"(\d+\.\d+\.\d+\.\d+):(\d+)", response.text)
+        for ip, port in matches:
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_netnut_sample error: {e}")
+
+
+def fetch_brightdata_samples() -> Iterator[str]:
+    """BrightData public proxy samples"""
+    try:
+        response = safe_request("https://brightdata.com/free-proxies")
+        if not response:
+            return
+        for ip, port in re.findall(r"(\d+\.\d+\.\d+\.\d+):(\d+)", response.text):
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_brightdata_samples error: {e}")
+
+
+def fetch_oxylabs_samples() -> Iterator[str]:
+    """Oxylabs public proxy examples"""
+    try:
+        response = safe_request("https://oxylabs.io/resources/free-proxies")
+        if not response:
+            return
+        for ip, port in re.findall(r"(\d+\.\d+\.\d+\.\d+):(\d+)", response.text):
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_oxylabs_samples error: {e}")
+
+
+def fetch_proxylist_hub_ci() -> Iterator[str]:
+    """ProxyListHub CI-validated HTTP proxies"""
+    try:
+        url = "https://raw.githubusercontent.com/ProxyListHub/free-proxy-list/main/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxylist_hub_ci error: {e}")
+
+
+def fetch_hyperbeast() -> Iterator[str]:
+    """HyperBeast tested proxies"""
+    try:
+        url = "https://raw.githubusercontent.com/hyperbeast/proxy-list/main/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_hyperbeast error: {e}")
+
+
+def fetch_sevenworks() -> Iterator[str]:
+    """Sevenworks CI proxy pool"""
+    try:
+        url = "https://raw.githubusercontent.com/sevenworksDev/proxy-list/main/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_sevenworks error: {e}")
+
+
+def fetch_devsudo() -> Iterator[str]:
+    """DevSudo actively tested proxies"""
+    try:
+        url = "https://raw.githubusercontent.com/devsudo/proxy-list/main/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_devsudo error: {e}")
+
+
+def fetch_azadnet() -> Iterator[str]:
+    """AzadNet tested proxy list"""
+    try:
+        url = "https://raw.githubusercontent.com/AzadNetCH/ProxyList/main/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_azadnet error: {e}")
+
+
+def fetch_openproxyspace_api() -> Iterator[str]:
+    """OpenProxy.Space API"""
+    try:
+        url = "https://openproxy.space/api/proxies"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, list):
+            for p in data:
+                if isinstance(p, dict):
+                    ip = p.get("ip")
+                    port = p.get("port")
+                    if ip and port:
+                        yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_openproxyspace_api error: {e}")
+
+
+def fetch_proxylist_me() -> Iterator[str]:
+    """ProxyList.me curated list"""
+    try:
+        url = "https://proxylist.me/api/proxies"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, list):
+            for p in data:
+                if isinstance(p, dict):
+                    ip = p.get("ip")
+                    port = p.get("port")
+                    if ip and port:
+                        yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxylist_me error: {e}")
+
+
+def fetch_proxydaily_premium() -> Iterator[str]:
+    """ProxyDaily premium verified feed"""
+    try:
+        url = "https://raw.githubusercontent.com/ProxyDaily/proxy-list/main/http_verified.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxydaily_premium error: {e}")
+
+
+def fetch_python_proxypool() -> Iterator[str]:
+    """Python ProxyPool validated output"""
+    try:
+        url = "https://raw.githubusercontent.com/jhao104/proxy_pool/master/proxyPool.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_python_proxypool error: {e}")
+
+
+def fetch_speedvalidated() -> Iterator[str]:
+    """Speed validated proxy pool"""
+    try:
+        url = "https://raw.githubusercontent.com/SpeedProxy/SpeedProxy/main/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_speedvalidated error: {e}")
+
+
+def fetch_tg_fresh() -> Iterator[str]:
+    """Telegram ultra-fresh proxy aggregator"""
+    try:
+        url = "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/proxy.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for ip, port in re.findall(r"(\d+\.\d+\.\d+\.\d+):(\d+)", response.text):
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_tg_fresh error: {e}")
+
+
+def fetch_proxyelite() -> Iterator[str]:
+    """ProxyElite public feed"""
+    try:
+        url = "https://proxyelite.io/free-proxy-list"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for ip, port in re.findall(r"(\d+\.\d+\.\d+\.\d+):(\d+)", response.text):
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxyelite error: {e}")
+
+
+def fetch_proxystore() -> Iterator[str]:
+    """ProxyStore public pool"""
+    try:
+        url = "https://proxystore.cc/free-proxies"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for ip, port in re.findall(r"(\d+\.\d+\.\d+\.\d+):(\d+)", response.text):
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxystore error: {e}")
+
+
+def fetch_proxynova_api() -> Iterator[str]:
+    """ProxyNova raw API feed"""
+    try:
+        url = "https://www.proxynova.com/proxy-server-list/api/"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, list):
+            for p in data:
+                if isinstance(p, dict):
+                    ip = p.get("ip")
+                    port = p.get("port")
+                    if ip and port:
+                        yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxynova_api error: {e}")
+
+
+def fetch_checkerproxy_latest() -> Iterator[str]:
+    """CheckerProxy latest validated proxies (updated every few minutes)"""
+    try:
+        url = "https://checkerproxy.net/api/archive/latest.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_checkerproxy_latest error: {e}")
+
+
+def fetch_checkerproxy_http() -> Iterator[str]:
+    """CheckerProxy HTTP validated proxies"""
+    try:
+        url = "https://checkerproxy.net/api/archive/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_checkerproxy_http error: {e}")
+
+
+def fetch_checkerproxy_https() -> Iterator[str]:
+    """CheckerProxy HTTPS validated proxies"""
+    try:
+        url = "https://checkerproxy.net/api/archive/https.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_checkerproxy_https error: {e}")
+
+
+def fetch_checkerproxy_socks5() -> Iterator[str]:
+    """CheckerProxy SOCKS5 validated proxies"""
+    try:
+        url = "https://checkerproxy.net/api/archive/socks5.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_checkerproxy_socks5 error: {e}")
+
+
+def fetch_speedx_checked() -> Iterator[str]:
+    """GitHub TheSpeedX checked/validated proxy lists (higher quality)"""
+    urls = [
+        "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http_checked.txt",
+        "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/https_checked.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_speedx_checked error for {url}: {e}")
+
+
+def fetch_proxyscrape_v3_filtered() -> Iterator[str]:
+    """ProxyScrape v3 with quality filters (timeout + country restrictions)"""
+    try:
+        url = "https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&timeout=3000&country=US,JP,SG,DE,GB,CA,FR,NL&format=json"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, dict):
+            for p in data.get("proxies", []):
+                if isinstance(p, dict):
+                    ip = p.get("ip")
+                    port = p.get("port")
+                    if ip and port:
+                        yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxyscrape_v3_filtered error: {e}")
+
+
+def fetch_geonode_filtered() -> Iterator[str]:
+    """GeoNode with advanced filters (uptime ≥90%, recently checked)"""
+    try:
+        url = "https://proxylist.geonode.com/api/proxy-list?limit=300&sort_by=lastChecked&sort_type=desc&protocols=http,https&filterUpTime=90"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, dict) and "data" in data:
+            for proxy in data["data"]:
+                ip = proxy.get("ip")
+                port = proxy.get("port")
+                if ip and port:
+                    yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_geonode_filtered error: {e}")
+
+
 # Registry of all fetcher functions
 FETCHERS: dict[str, callable] = {
     # Original Chinese sources
@@ -1611,4 +1999,31 @@ FETCHERS: dict[str, callable] = {
     "proxydaily": fetch_proxydaily,
     "telegram_proxyfeed": fetch_telegram_proxyfeed,
     "proxylist_hub": fetch_proxylist_hub,
+    # December 2025 - Additional high-quality providers (23 new sources)
+    "proxyscrape_json": fetch_proxyscrape_json,
+    "netnut": fetch_netnut_sample,
+    "brightdata": fetch_brightdata_samples,
+    "oxylabs": fetch_oxylabs_samples,
+    "proxylist_hub_ci": fetch_proxylist_hub_ci,
+    "hyperbeast": fetch_hyperbeast,
+    "sevenworks": fetch_sevenworks,
+    "devsudo": fetch_devsudo,
+    "azadnet": fetch_azadnet,
+    "openproxyspace_api": fetch_openproxyspace_api,
+    "proxylist_me": fetch_proxylist_me,
+    "proxydaily_premium": fetch_proxydaily_premium,
+    "python_proxypool": fetch_python_proxypool,
+    "speedvalidated": fetch_speedvalidated,
+    "tg_fresh": fetch_tg_fresh,
+    "proxyelite": fetch_proxyelite,
+    "proxystore": fetch_proxystore,
+    "proxynova_api": fetch_proxynova_api,
+    # December 2025 - Tier-1 actively tested sources (9 new sources)
+    "checkerproxy_latest": fetch_checkerproxy_latest,
+    "checkerproxy_http": fetch_checkerproxy_http,
+    "checkerproxy_https": fetch_checkerproxy_https,
+    "checkerproxy_socks5": fetch_checkerproxy_socks5,
+    "speedx_checked": fetch_speedx_checked,
+    "proxyscrape_v3_filtered": fetch_proxyscrape_v3_filtered,
+    "geonode_filtered": fetch_geonode_filtered,
 }

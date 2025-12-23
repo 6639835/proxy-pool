@@ -2,10 +2,11 @@
 
 import re
 import logging
+import asyncio
 from dataclasses import dataclass
 from typing import Optional
 
-import requests
+import httpx
 
 from .config import HTTP_TEST_URL, HTTPS_TEST_URL, VALIDATION_TIMEOUT, USER_AGENTS
 
@@ -49,26 +50,24 @@ def is_valid_format(proxy: str) -> bool:
     return bool(PROXY_PATTERN.match(proxy))
 
 
-def test_http(proxy: str) -> bool:
+async def test_http(client: httpx.AsyncClient, proxy: str) -> bool:
     """
     Test if proxy works for HTTP requests.
 
     Args:
+        client: httpx AsyncClient instance
         proxy: Proxy string in format "ip:port"
 
     Returns:
         True if proxy works for HTTP
     """
-    proxies = {
-        "http": f"http://{proxy}",
-        "https": f"http://{proxy}",
-    }
+    proxy_url = f"http://{proxy}"
 
     try:
-        response = requests.head(
+        response = await client.head(
             HTTP_TEST_URL,
             headers=VALIDATION_HEADERS,
-            proxies=proxies,
+            proxy=proxy_url,
             timeout=VALIDATION_TIMEOUT,
         )
         return response.status_code == 200
@@ -77,26 +76,25 @@ def test_http(proxy: str) -> bool:
         return False
 
 
-def test_https(proxy: str) -> bool:
+async def test_https(client: httpx.AsyncClient, proxy: str) -> bool:
     """
     Test if proxy works for HTTPS requests.
 
     Args:
+        client: httpx AsyncClient instance
         proxy: Proxy string in format "ip:port"
 
     Returns:
         True if proxy works for HTTPS
     """
-    proxies = {
-        "http": f"http://{proxy}",
-        "https": f"https://{proxy}",
-    }
+    # Use https scheme for HTTPS testing
+    proxy_url = f"http://{proxy}"
 
     try:
-        response = requests.head(
+        response = await client.head(
             HTTPS_TEST_URL,
             headers=VALIDATION_HEADERS,
-            proxies=proxies,
+            proxy=proxy_url,
             timeout=VALIDATION_TIMEOUT,
             verify=False,  # Ignore SSL verification for proxy testing
         )
@@ -106,7 +104,7 @@ def test_https(proxy: str) -> bool:
         return False
 
 
-def validate_proxy(proxy: str, source: str = "unknown") -> Optional[ProxyInfo]:
+async def validate_proxy(proxy: str, source: str = "unknown") -> Optional[ProxyInfo]:
     """
     Validate a proxy for both HTTP and HTTPS.
 
@@ -122,17 +120,26 @@ def validate_proxy(proxy: str, source: str = "unknown") -> Optional[ProxyInfo]:
         logger.debug(f"Invalid format: {proxy}")
         return None
 
-    # HTTP validation (required)
-    http_works = test_http(proxy)
-    if not http_works:
-        return None
+    # Test HTTP and HTTPS in parallel
+    async with httpx.AsyncClient(verify=False) as client:
+        # Run both tests concurrently
+        http_result, https_result = await asyncio.gather(
+            test_http(client, proxy),
+            test_https(client, proxy),
+            return_exceptions=True
+        )
 
-    # HTTPS validation (optional, only if HTTP works)
-    https_works = test_https(proxy)
+        # Handle exceptions from gather
+        http_works = http_result if isinstance(http_result, bool) else False
+        https_works = https_result if isinstance(https_result, bool) else False
 
-    return ProxyInfo(
-        proxy=proxy,
-        http_works=True,
-        https_works=https_works,
-        source=source,
-    )
+        # Only return if HTTP works
+        if not http_works:
+            return None
+
+        return ProxyInfo(
+            proxy=proxy,
+            http_works=True,
+            https_works=https_works,
+            source=source,
+        )

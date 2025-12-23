@@ -1,8 +1,9 @@
 """Main collector that orchestrates proxy fetching and validation."""
 
+import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Iterator
+from typing import Optional
 
 from .config import MAX_FETCH_WORKERS, MAX_VALIDATION_WORKERS
 from .fetchers import FETCHERS
@@ -83,52 +84,104 @@ def deduplicate_proxies(proxies: list[tuple[str, str]]) -> dict[str, str]:
     return proxy_map
 
 
-def validate_proxies(proxy_map: dict[str, str]) -> Iterator[ProxyInfo]:
+async def validate_single_proxy(
+    semaphore: asyncio.Semaphore,
+    proxy: str,
+    source: str,
+    index: int,
+    total: int
+) -> tuple[int, Optional[ProxyInfo]]:
     """
-    Validate all proxies concurrently.
+    Validate a single proxy with semaphore for concurrency control.
+
+    Args:
+        semaphore: Asyncio semaphore for concurrency limiting
+        proxy: Proxy string
+        source: Source name
+        index: Current index (for logging)
+        total: Total number of proxies
+
+    Returns:
+        Tuple of (index, ProxyInfo or None)
+    """
+    async with semaphore:
+        try:
+            result = await validate_proxy(proxy, source)
+            if result and result.is_valid:
+                logger.info(
+                    f"[{index}/{total}] ✓ {proxy} (HTTPS: {result.https_works}) from {result.source}"
+                )
+            else:
+                logger.debug(f"[{index}/{total}] ✗ {proxy} failed validation")
+            return (index, result)
+        except Exception as e:
+            logger.error(f"[{index}/{total}] ✗ {proxy} validation error: {e}")
+            return (index, None)
+
+
+async def validate_proxies_async(proxy_map: dict[str, str]) -> list[ProxyInfo]:
+    """
+    Validate all proxies concurrently using asyncio.
 
     Args:
         proxy_map: Dictionary mapping proxy to source name
 
-    Yields:
-        ProxyInfo for each valid proxy
+    Returns:
+        List of valid ProxyInfo objects
     """
     total = len(proxy_map)
+    logger.info(f"Starting async validation of {total} unique proxies...")
+
+    # Semaphore to limit concurrency
+    semaphore = asyncio.Semaphore(MAX_VALIDATION_WORKERS)
+
+    # Create validation tasks
+    tasks = [
+        validate_single_proxy(semaphore, proxy, source, i, total)
+        for i, (proxy, source) in enumerate(proxy_map.items(), 1)
+    ]
+
+    # Execute all tasks concurrently
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # Collect valid proxies and count stats
+    valid_proxies = []
     validated_count = 0
     failed_count = 0
 
-    logger.info(f"Starting validation of {total} unique proxies...")
-
-    with ThreadPoolExecutor(max_workers=MAX_VALIDATION_WORKERS) as executor:
-        futures = {
-            executor.submit(validate_proxy, proxy, source): proxy
-            for proxy, source in proxy_map.items()
-        }
-
-        for i, future in enumerate(as_completed(futures), 1):
-            proxy = futures[future]
-            try:
-                result = future.result()
-                if result and result.is_valid:
-                    validated_count += 1
-                    yield result
-                    logger.info(
-                        f"[{i}/{total}] ✓ {proxy} (HTTPS: {result.https_works}) from {result.source}"
-                    )
-                else:
-                    failed_count += 1
-                    logger.debug(f"[{i}/{total}] ✗ {proxy} failed validation")
-            except Exception as e:
+    for i, result in enumerate(results, 1):
+        if isinstance(result, Exception):
+            failed_count += 1
+            logger.error(f"Task {i} raised exception: {result}")
+        elif isinstance(result, tuple):
+            _, proxy_info = result
+            if proxy_info and proxy_info.is_valid:
+                valid_proxies.append(proxy_info)
+                validated_count += 1
+            else:
                 failed_count += 1
-                logger.error(f"[{i}/{total}] ✗ {proxy} validation error: {e}")
 
-            # Progress update every 10 proxies
-            if i % 10 == 0:
-                logger.info(
-                    f"Progress: {i}/{total} validated ({validated_count} valid, {failed_count} failed)"
-                )
+        # Progress update every 50 proxies (more frequent for async)
+        if i % 50 == 0:
+            logger.info(
+                f"Progress: {i}/{total} validated ({validated_count} valid, {failed_count} failed)"
+            )
 
     logger.info(f"Validation complete: {validated_count} valid, {failed_count} failed")
+    return valid_proxies
+
+
+def validate_proxies(proxy_map: dict[str, str]) -> list[ProxyInfo]:
+    """
+    Validate all proxies (sync wrapper for async validation).
+
+    Args:
+        proxy_map: Dictionary mapping proxy to source name
+
+    Returns:
+        List of valid ProxyInfo objects
+    """
+    return asyncio.run(validate_proxies_async(proxy_map))
 
 
 def collect_proxies() -> list[ProxyInfo]:
@@ -152,8 +205,8 @@ def collect_proxies() -> list[ProxyInfo]:
         logger.warning("No unique proxies after deduplication!")
         return []
 
-    # Step 3: Validate
-    valid_proxies = list(validate_proxies(unique_proxies))
+    # Step 3: Validate (now async)
+    valid_proxies = validate_proxies(unique_proxies)
 
     logger.info(f"Collection complete: {len(valid_proxies)} valid proxies")
     return valid_proxies
