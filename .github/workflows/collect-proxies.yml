@@ -17,7 +17,7 @@ on:
 jobs:
   collect-and-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     permissions:
       contents: write  # Required to create releases and tags
 
