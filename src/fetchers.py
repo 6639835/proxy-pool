@@ -145,7 +145,7 @@ def fetch_freeproxylists() -> Iterator[str]:
 def fetch_kuaidaili() -> Iterator[str]:
     """快代理 https://www.kuaidaili.com/"""
     patterns = [
-        "https://www.kuaidaili.com/free/inha/{}/',
+        "https://www.kuaidaili.com/free/inha/{}/",
         "https://www.kuaidaili.com/free/intr/{}/"
     ]
 
