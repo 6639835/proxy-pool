@@ -1914,6 +1914,339 @@ def fetch_geonode_filtered() -> Iterator[str]:
         logger.debug(f"fetch_geonode_filtered error: {e}")
 
 
+def fetch_proxifly_api() -> Iterator[str]:
+    """Proxifly.dev API (100+ countries, updated every 5 min)"""
+    try:
+        url = "https://api.proxifly.dev/get-proxy?limit=50"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        data = response.json()
+        if isinstance(data, list):
+            for p in data:
+                if isinstance(p, dict):
+                    ip = p.get("ip")
+                    port = p.get("port")
+                    if ip and port:
+                        yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_proxifly_api error: {e}")
+
+
+def fetch_webshare() -> Iterator[str]:
+    """Webshare free proxy list (10 free premium datacenter proxies)"""
+    try:
+        # Webshare provides free proxies via their download page
+        url = "https://proxy.webshare.io/api/v2/proxy/list/download/-/any/sourceip/direct/-/"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_webshare error: {e}")
+
+
+def fetch_proxyranker() -> Iterator[str]:
+    """ProxyRanker real-time tested proxies"""
+    try:
+        url = "https://www.proxyranker.com/api/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxyranker error: {e}")
+
+
+def fetch_proxyhub() -> Iterator[str]:
+    """ProxyHub aggregated free proxies"""
+    try:
+        url = "https://raw.githubusercontent.com/proxyhub/free-proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxyhub error: {e}")
+
+
+def fetch_proxyrotator() -> Iterator[str]:
+    """GitHub ProxyRotator validated proxies"""
+    urls = [
+        "https://raw.githubusercontent.com/proxyrotator/free-proxy-list/main/http.txt",
+        "https://raw.githubusercontent.com/proxyrotator/free-proxy-list/main/https.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_proxyrotator error for {url}: {e}")
+
+
+def fetch_freeproxyupdate() -> Iterator[str]:
+    """GitHub free-proxy-update (hourly updates)"""
+    try:
+        url = "https://raw.githubusercontent.com/free-proxy-list/free-proxy-update/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_freeproxyupdate error: {e}")
+
+
+def fetch_mertguvencli() -> Iterator[str]:
+    """GitHub MertGuvencli/http-proxy-list (updated every 10 minutes)"""
+    try:
+        url = "https://raw.githubusercontent.com/MertGuvencli/http-proxy-list/main/proxy-list/data.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_mertguvencli error: {e}")
+
+
+def fetch_themiracleworker() -> Iterator[str]:
+    """GitHub themiracleworker/Proxy-List (hourly updates, multi-source aggregation)"""
+    urls = [
+        "https://raw.githubusercontent.com/themiracleworker/Proxy-List/main/http.txt",
+        "https://raw.githubusercontent.com/themiracleworker/Proxy-List/main/https.txt",
+        "https://raw.githubusercontent.com/themiracleworker/Proxy-List/main/socks4.txt",
+        "https://raw.githubusercontent.com/themiracleworker/Proxy-List/main/socks5.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_themiracleworker error for {url}: {e}")
+
+
+def fetch_live_proxies() -> Iterator[str]:
+    """GitHub live-proxies aggregator"""
+    try:
+        url = "https://raw.githubusercontent.com/proxies/live-proxies/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_live_proxies error: {e}")
+
+
+def fetch_casals() -> Iterator[str]:
+    """GitHub casals/proxy-list (daily updates)"""
+    try:
+        url = "https://raw.githubusercontent.com/casals/proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_casals error: {e}")
+
+
+def fetch_proxylist_world() -> Iterator[str]:
+    """ProxyList.world API (regularly updated public proxies)"""
+    try:
+        url = "https://proxylist.world/api/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxylist_world error: {e}")
+
+
+def fetch_dailyfreshproxies() -> Iterator[str]:
+    """GitHub DailyFreshProxies aggregator"""
+    urls = [
+        "https://raw.githubusercontent.com/DailyFreshProxies/proxy-list/main/http.txt",
+        "https://raw.githubusercontent.com/DailyFreshProxies/proxy-list/main/https.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_dailyfreshproxies error for {url}: {e}")
+
+
+def fetch_proxylistproject() -> Iterator[str]:
+    """GitHub proxy-list-project (automated CI validation)"""
+    try:
+        url = "https://raw.githubusercontent.com/proxy-list-project/proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxylistproject error: {e}")
+
+
+def fetch_fahimscirex() -> Iterator[str]:
+    """GitHub fahimscirex/proxylist (frequent updates with geolocation)"""
+    urls = [
+        "https://raw.githubusercontent.com/fahimscirex/proxylist/main/http.txt",
+        "https://raw.githubusercontent.com/fahimscirex/proxylist/main/https.txt",
+        "https://raw.githubusercontent.com/fahimscirex/proxylist/main/socks4.txt",
+        "https://raw.githubusercontent.com/fahimscirex/proxylist/main/socks5.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_fahimscirex error for {url}: {e}")
+
+
+def fetch_blackhatethicalhacking() -> Iterator[str]:
+    """GitHub BlackHatEthicalHacking/proxy-list-daily"""
+    try:
+        url = "https://raw.githubusercontent.com/BlackHatEthicalHacking/proxy-list-daily/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_blackhatethicalhacking error: {e}")
+
+
+def fetch_yemixzy() -> Iterator[str]:
+    """GitHub yemixzy/proxy-list (updated every few hours)"""
+    try:
+        url = "https://raw.githubusercontent.com/yemixzy/proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_yemixzy error: {e}")
+
+
+def fetch_proxylistgalore() -> Iterator[str]:
+    """GitHub proxy-list-galore aggregator"""
+    urls = [
+        "https://raw.githubusercontent.com/proxy-list-galore/free-proxies/main/http.txt",
+        "https://raw.githubusercontent.com/proxy-list-galore/free-proxies/main/https.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_proxylistgalore error for {url}: {e}")
+
+
+def fetch_rdavydov() -> Iterator[str]:
+    """GitHub rdavydov/Proxy-List (hourly Telegram aggregator)"""
+    try:
+        url = "https://raw.githubusercontent.com/rdavydov/Proxy-List/main/proxies/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_rdavydov error: {e}")
+
+
+def fetch_proxygen() -> Iterator[str]:
+    """GitHub ProxyGen validated proxies"""
+    try:
+        url = "https://raw.githubusercontent.com/ProxyGen/proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy and not proxy.startswith("#"):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxygen error: {e}")
+
+
+def fetch_b2t5() -> Iterator[str]:
+    """GitHub B2T5/proxy-list (multi-protocol support)"""
+    urls = [
+        "https://raw.githubusercontent.com/B2T5/proxy-list/main/HTTP.txt",
+        "https://raw.githubusercontent.com/B2T5/proxy-list/main/HTTPS.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy and not proxy.startswith("#"):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_b2t5 error for {url}: {e}")
+
+
 # Registry of all fetcher functions
 FETCHERS: dict[str, callable] = {
     # Original Chinese sources
@@ -2026,4 +2359,25 @@ FETCHERS: dict[str, callable] = {
     "speedx_checked": fetch_speedx_checked,
     "proxyscrape_v3_filtered": fetch_proxyscrape_v3_filtered,
     "geonode_filtered": fetch_geonode_filtered,
+    # December 2025 - Additional high-quality sources (21 new sources)
+    "proxifly_api": fetch_proxifly_api,
+    "webshare": fetch_webshare,
+    "proxyranker": fetch_proxyranker,
+    "proxyhub": fetch_proxyhub,
+    "proxyrotator": fetch_proxyrotator,
+    "freeproxyupdate": fetch_freeproxyupdate,
+    "mertguvencli": fetch_mertguvencli,
+    "themiracleworker": fetch_themiracleworker,
+    "live_proxies": fetch_live_proxies,
+    "casals": fetch_casals,
+    "proxylist_world": fetch_proxylist_world,
+    "dailyfreshproxies": fetch_dailyfreshproxies,
+    "proxylistproject": fetch_proxylistproject,
+    "fahimscirex": fetch_fahimscirex,
+    "blackhatethicalhacking": fetch_blackhatethicalhacking,
+    "yemixzy": fetch_yemixzy,
+    "proxylistgalore": fetch_proxylistgalore,
+    "rdavydov": fetch_rdavydov,
+    "proxygen": fetch_proxygen,
+    "b2t5": fetch_b2t5,
 }
