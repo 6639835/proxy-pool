@@ -4,8 +4,8 @@ import os
 from typing import Final
 
 # Validation settings
-HTTP_TEST_URL: Final[str] = os.getenv("HTTP_TEST_URL", "http://httpbin.org/ip")
-HTTPS_TEST_URL: Final[str] = os.getenv("HTTPS_TEST_URL", "https://www.qq.com")
+HTTP_TEST_URL: Final[str] = os.getenv("HTTP_TEST_URL", "http://www.google.com")
+HTTPS_TEST_URL: Final[str] = os.getenv("HTTPS_TEST_URL", "https://www.google.com")
 VALIDATION_TIMEOUT: Final[int] = int(os.getenv("VALIDATION_TIMEOUT", "5"))
 
 # Concurrency settings
