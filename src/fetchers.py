@@ -1406,6 +1406,126 @@ def fetch_redscrape() -> Iterator[str]:
         logger.debug(f"fetch_redscrape error: {e}")
 
 
+def fetch_proxylistto() -> Iterator[str]:
+    """ProxyList.to API (clean & fast, multi-protocol)"""
+    try:
+        url = "https://proxylist.to/api/proxy?limit=500&format=txt&type=http,https,socks4,socks5"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxylistto error: {e}")
+
+
+def fetch_openproxylist_txt() -> Iterator[str]:
+    """OpenProxyList raw TXT feed"""
+    try:
+        url = "https://openproxylist.xyz/http.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_openproxylist_txt error: {e}")
+
+
+def fetch_proxyscrape_legacy() -> Iterator[str]:
+    """ProxyScrape legacy TXT (different pool than v2 API)"""
+    try:
+        urls = [
+            "https://api.proxyscrape.com/?request=getproxies&proxytype=http",
+            "https://api.proxyscrape.com/?request=getproxies&proxytype=https",
+            "https://api.proxyscrape.com/?request=getproxies&proxytype=socks5",
+        ]
+        for url in urls:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.splitlines():
+                proxy = line.strip()
+                if proxy and ":" in proxy:
+                    yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxyscrape_legacy error: {e}")
+
+
+def fetch_apify_proxies() -> Iterator[str]:
+    """Apify community proxy dataset (JSON, rotating sources)"""
+    try:
+        url = "https://api.apify.com/v2/datasets/JG7k9C4nKp5eu3JGX/items?format=json&limit=500"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        data = response.json()
+        if isinstance(data, list):
+            for item in data:
+                ip = item.get("ip")
+                port = item.get("port")
+                if ip and port:
+                    yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_apify_proxies error: {e}")
+
+
+def fetch_proxydaily() -> Iterator[str]:
+    """GitHub ProxyDaily/proxy-list (validated hourly)"""
+    try:
+        url = "https://raw.githubusercontent.com/ProxyDaily/proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxydaily error: {e}")
+
+
+def fetch_telegram_proxyfeed() -> Iterator[str]:
+    """Telegram aggregated proxy mirror"""
+    try:
+        url = "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        # Extract IP:PORT patterns from mixed content
+        matches = re.findall(r"(\d{1,3}(?:\.\d{1,3}){3}):(\d+)", response.text)
+        for ip, port in matches:
+            yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_telegram_proxyfeed error: {e}")
+
+
+def fetch_proxylist_hub() -> Iterator[str]:
+    """GitHub ProxyListHub/free-proxy-list"""
+    try:
+        url = "https://raw.githubusercontent.com/ProxyListHub/free-proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.splitlines():
+            proxy = line.strip()
+            if proxy and ":" in proxy:
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_proxylist_hub error: {e}")
+
+
 # Registry of all fetcher functions
 FETCHERS: dict[str, callable] = {
     # Original Chinese sources
@@ -1483,4 +1603,12 @@ FETCHERS: dict[str, callable] = {
     "anonym0uswork": fetch_anonym0uswork,
     "theriturajps": fetch_theriturajps,
     "redscrape": fetch_redscrape,
+    # Additional high-value providers (December 2025 expansion)
+    "proxylistto": fetch_proxylistto,
+    "openproxylist_txt": fetch_openproxylist_txt,
+    "proxyscrape_legacy": fetch_proxyscrape_legacy,
+    "apify": fetch_apify_proxies,
+    "proxydaily": fetch_proxydaily,
+    "telegram_proxyfeed": fetch_telegram_proxyfeed,
+    "proxylist_hub": fetch_proxylist_hub,
 }
