@@ -586,6 +586,213 @@ def fetch_advanced_name() -> Iterator[str]:
         logger.debug(f"fetch_advanced_name error: {e}")
 
 
+def fetch_komutan234() -> Iterator[str]:
+    """GitHub komutan234/Proxy-List-Free (updated every 2 hours)"""
+    urls = [
+        "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/http.txt",
+        "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/https.txt",
+        "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks4.txt",
+        "https://raw.githubusercontent.com/komutan234/Proxy-List-Free/main/proxies/socks5.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split('\n'):
+                proxy = line.strip()
+                if proxy and ':' in proxy and not proxy.startswith('#'):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_komutan234 error for {url}: {e}")
+
+
+def fetch_iplocate() -> Iterator[str]:
+    """GitHub iplocate/free-proxy-list (updated every 30 min)"""
+    try:
+        url = "https://raw.githubusercontent.com/iplocate/free-proxy-list/main/proxies.txt"
+        response = safe_request(url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.split('\n'):
+            proxy = line.strip()
+            if proxy and ':' in proxy and not proxy.startswith('#'):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_iplocate error: {e}")
+
+
+def fetch_proxyscraper() -> Iterator[str]:
+    """GitHub ProxyScraper/ProxyScraper (updated every 30 min)"""
+    urls = [
+        "https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/http.txt",
+        "https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/https.txt",
+        "https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/socks4.txt",
+        "https://raw.githubusercontent.com/ProxyScraper/ProxyScraper/main/socks5.txt",
+    ]
+    for url in urls:
+        try:
+            response = safe_request(url, timeout=20)
+            if not response:
+                continue
+
+            for line in response.text.split('\n'):
+                proxy = line.strip()
+                if proxy and ':' in proxy and not proxy.startswith('#'):
+                    yield proxy
+        except Exception as e:
+            logger.debug(f"fetch_proxyscraper error for {url}: {e}")
+
+
+def fetch_hendrikbgr() -> Iterator[str]:
+    """HendrikBGR Proxy Pool API (scraped from 60+ sites, hourly updates)"""
+    try:
+        # API endpoint
+        api_url = "https://proxy-pool-api.onrender.com/random"
+        response = safe_request(api_url, timeout=20)
+        if response and response.text.strip():
+            proxy = response.text.strip()
+            if proxy and ':' in proxy:
+                yield proxy
+
+        # Also fetch from raw GitHub list
+        github_url = "https://raw.githubusercontent.com/hendrikbgr/Free-Proxy-Repo/master/proxy_list.txt"
+        response = safe_request(github_url, timeout=20)
+        if not response:
+            return
+
+        for line in response.text.split('\n'):
+            proxy = line.strip()
+            if proxy and ':' in proxy and not proxy.startswith('#'):
+                yield proxy
+    except Exception as e:
+        logger.debug(f"fetch_hendrikbgr error: {e}")
+
+
+def fetch_openproxyspace() -> Iterator[str]:
+    """Open Proxy Space (updated daily, customizable downloads)"""
+    try:
+        response = safe_request("https://openproxy.space/list")
+        if not response:
+            return
+
+        tree = etree.HTML(response.content)
+        # Extract proxies from table
+        for tr in tree.xpath("//table//tr")[1:]:  # Skip header
+            ip = "".join(tr.xpath("./td[1]/text()")).strip()
+            port = "".join(tr.xpath("./td[2]/text()")).strip()
+            if ip and port:
+                yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_openproxyspace error: {e}")
+
+
+def fetch_freeproxycz() -> Iterator[str]:
+    """Free Proxy CZ (17k+ proxies, daily updates)"""
+    try:
+        response = safe_request("http://free-proxy.cz/en/")
+        if not response:
+            return
+
+        tree = etree.HTML(response.content)
+        # Extract proxies from proxy list table
+        for tr in tree.xpath("//table[@id='proxy_list']//tr")[1:]:  # Skip header
+            # IP is usually in first td with decode script
+            proxy_script = "".join(tr.xpath("./td[1]//script/text()")).strip()
+
+            # Try to extract IP from Base64 decoded script
+            if proxy_script:
+                # Pattern: decode("base64string")
+                import base64
+                b64_matches = re.findall(r'decode\("([^"]+)"\)', proxy_script)
+                if b64_matches:
+                    try:
+                        decoded = base64.b64decode(b64_matches[0]).decode('utf-8')
+                        # Extract IP:PORT from decoded string
+                        proxy_match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', decoded)
+                        if proxy_match:
+                            yield f"{proxy_match.group(1)}:{proxy_match.group(2)}"
+                    except Exception:
+                        pass
+    except Exception as e:
+        logger.debug(f"fetch_freeproxycz error: {e}")
+
+
+def fetch_sslproxies() -> Iterator[str]:
+    """SSL Proxies (100 HTTPS proxies, updated every 10-60 min)"""
+    try:
+        response = safe_request("https://www.sslproxies.org/")
+        if not response:
+            return
+
+        tree = etree.HTML(response.content)
+        for tr in tree.xpath("//table[@id='proxylisttable']//tr")[1:]:
+            ip = "".join(tr.xpath("./td[1]/text()")).strip()
+            port = "".join(tr.xpath("./td[2]/text()")).strip()
+            if ip and port:
+                yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_sslproxies error: {e}")
+
+
+def fetch_freeproxyworld() -> Iterator[str]:
+    """Free Proxy World (4k-25k proxies)"""
+    try:
+        response = safe_request("https://www.freeproxy.world/")
+        if not response:
+            return
+
+        tree = etree.HTML(response.content)
+        # Extract from main proxy table
+        for tr in tree.xpath("//table//tr")[1:]:  # Skip header
+            ip = "".join(tr.xpath("./td[1]/text()")).strip()
+            port = "".join(tr.xpath("./td[2]/text()")).strip()
+            if ip and port:
+                yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_freeproxyworld error: {e}")
+
+
+def fetch_proxydb() -> Iterator[str]:
+    """ProxyDB (detailed lists with uptime/RTime)"""
+    try:
+        response = safe_request("https://proxydb.net/")
+        if not response:
+            return
+
+        tree = etree.HTML(response.content)
+        for tr in tree.xpath("//table//tr")[1:]:  # Skip header
+            # ProxyDB shows proxy in format ip:port
+            proxy_text = "".join(tr.xpath("./td[1]//text()")).strip()
+            if proxy_text and ':' in proxy_text:
+                # Extract IP:PORT pattern
+                match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+)', proxy_text)
+                if match:
+                    yield f"{match.group(1)}:{match.group(2)}"
+    except Exception as e:
+        logger.debug(f"fetch_proxydb error: {e}")
+
+
+def fetch_premproxy() -> Iterator[str]:
+    """Premproxy (elite/anonymous proxies)"""
+    try:
+        response = safe_request("https://premproxy.com/list/")
+        if not response:
+            return
+
+        tree = etree.HTML(response.content)
+        # Extract proxies from the list
+        for tr in tree.xpath("//table//tr")[1:]:  # Skip header
+            ip = "".join(tr.xpath("./td[1]/text()")).strip()
+            port = "".join(tr.xpath("./td[2]/text()")).strip()
+            if ip and port:
+                yield f"{ip}:{port}"
+    except Exception as e:
+        logger.debug(f"fetch_premproxy error: {e}")
+
+
 # Registry of all fetcher functions
 FETCHERS: dict[str, callable] = {
     # Original Chinese sources
@@ -608,20 +815,30 @@ FETCHERS: dict[str, callable] = {
     "spysone": fetch_spysone,
     "clarketm": fetch_clarketm,
 
-    # New API-based sources (high reliability)
+    # API-based sources (high reliability)
     "proxifly": fetch_proxifly,
     "getproxylist": fetch_getproxylist,
     "pubproxy": fetch_pubproxy,
     "proxy11": fetch_proxy11,
     "gimmeproxy": fetch_gimmeproxy,
+    "hendrikbgr": fetch_hendrikbgr,
 
-    # New GitHub sources (high reliability)
+    # GitHub sources (high reliability)
     "jetkai": fetch_jetkai,
     "vakhov": fetch_vakhov,
     "shiftytr": fetch_shiftytr,
+    "komutan234": fetch_komutan234,
+    "iplocate": fetch_iplocate,
+    "proxyscraper": fetch_proxyscraper,
 
-    # New web scraping sources
+    # Web scraping sources
     "proxynova": fetch_proxynova,
     "hidemy": fetch_hidemy,
     "advanced_name": fetch_advanced_name,
+    "openproxyspace": fetch_openproxyspace,
+    "freeproxycz": fetch_freeproxycz,
+    "sslproxies": fetch_sslproxies,
+    "freeproxyworld": fetch_freeproxyworld,
+    "proxydb": fetch_proxydb,
+    "premproxy": fetch_premproxy,
 }

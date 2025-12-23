@@ -2,7 +2,7 @@
 
 > **Clean · Safe · Consistent · Observable · Maintainable**
 
-A minimal, GitHub Actions-optimized proxy pool collector that gathers and validates free proxies from 27+ sources.
+A minimal, GitHub Actions-optimized proxy pool collector that gathers and validates free proxies from 37+ sources.
 
 ## Features
 
@@ -116,7 +116,7 @@ proxy-pool/
 ├── src/
 │   ├── __init__.py
 │   ├── config.py                  # Configuration constants
-│   ├── fetchers.py                # 27 proxy source fetchers
+│   ├── fetchers.py                # 37 proxy source fetchers
 │   ├── validator.py               # HTTP/HTTPS validation
 │   ├── collector.py               # Orchestration logic
 │   └── exporter.py                # File export functions
@@ -129,7 +129,7 @@ proxy-pool/
 
 ```
 ┌─────────────────┐
-│  Fetch Proxies  │ → 27 sources, concurrent fetching
+│  Fetch Proxies  │ → 37 sources, concurrent fetching
 └────────┬────────┘
          ↓
 ┌─────────────────┐
@@ -147,7 +147,7 @@ proxy-pool/
 
 ## Proxy Sources
 
-Proxies are collected from 27+ free sources:
+Proxies are collected from 37+ free sources:
 
 ### API-Based Sources (High Reliability)
 | Source | Type | API | Update Frequency |
@@ -159,6 +159,7 @@ Proxies are collected from 27+ free sources:
 | **GimmeProxy** | API | ✓ | Every minute |
 | **GetProxyList** | API | ✓ | Real-time |
 | **PubProxy** | API | ✓ | Real-time |
+| **HendrikBGR** | API | ✓ | Hourly |
 | proxy-list.download | API | ✓ | Real-time |
 | 稻壳代理 (DocIP) | API | ✓ | Real-time |
 
@@ -168,6 +169,9 @@ Proxies are collected from 27+ free sources:
 | **jetkai/proxy-list** | List | ✓ | Hourly |
 | **vakhov/fresh-proxy-list** | List | ✓ | 5-20 minutes |
 | **ShiftyTR/Proxy-List** | List | ✓ | Hourly |
+| **komutan234/Proxy-List-Free** | List | ✓ | Every 2 hours |
+| **iplocate/free-proxy-list** | List | ✓ | Every 30 minutes |
+| **ProxyScraper/ProxyScraper** | List | ✓ | Every 30 minutes |
 | TheSpeedX | List | ✓ | Regular |
 | clarketm | List | ✓ | Regular |
 
@@ -177,6 +181,12 @@ Proxies are collected from 27+ free sources:
 | **ProxyNova** | Scrape | International | Large volume, minute updates |
 | **HideMy.Name** | Scrape | International | Speed/anonymity checked |
 | **advanced.name** | Scrape | International | Auto-updated |
+| **Open Proxy Space** | Scrape | International | 700+ active proxies, daily updates |
+| **Free Proxy CZ** | Scrape | International | 17k+ proxies, daily updates, 100+ countries |
+| **SSL Proxies** | Scrape | International | 100 HTTPS proxies, 10-60 min updates |
+| **Free Proxy World** | Scrape | International | 4k-25k proxies, speed filtered |
+| **ProxyDB** | Scrape | International | Uptime/RTime tracked |
+| **Premproxy** | Scrape | International | Elite/anonymous focus |
 | free-proxy-list.net | Scrape | International | Large table |
 | freeproxylists.net | Scrape | International | JS obfuscation |
 | spys.one | Scrape | International | CN-specific page |
@@ -190,7 +200,7 @@ Proxies are collected from 27+ free sources:
 
 ### New Providers Highlights
 
-The recent expansion added 11 new high-quality sources:
+The recent expansion added 21 new high-quality sources:
 
 **Best New Additions:**
 1. **Proxifly** - Updates every 5 minutes, thousands of working proxies, multi-protocol support
@@ -198,13 +208,19 @@ The recent expansion added 11 new high-quality sources:
 3. **GimmeProxy** - Freshest proxies (updated every minute), developer-focused API
 4. **jetkai/proxy-list** - Well-maintained GitHub repo, hourly updates, tested proxies
 5. **vakhov/fresh-proxy-list** - Very frequent updates (5-20 min), high quality
+6. **HendrikBGR** - API + GitHub, scraped from 60+ sites, hourly updates
+7. **komutan234** - Multi-protocol GitHub repo, updated every 2 hours
+8. **Free Proxy CZ** - Massive list (17k+) with advanced filters
+9. **ProxyScraper** - High-reliability GitHub repo, 30-minute updates
+10. **SSL Proxies** - HTTPS-focused proxies for secure connections
 
 **Why These Sources Were Added:**
-- **Higher Frequency**: Many update every 1-20 minutes (vs hourly/daily)
+- **Higher Frequency**: Many update every 1-30 minutes (vs hourly/daily)
 - **Better APIs**: Structured JSON/TXT responses, easier parsing
 - **GitHub Reliability**: Repository-based lists are more stable than web scraping
-- **Volume Boost**: Expected 2-3x increase in validated proxy count
+- **Volume Boost**: Expected 3-5x increase in validated proxy count
 - **Reduced Fragility**: Less reliance on web scraping prone to HTML changes
+- **Protocol Diversity**: Better SOCKS4/5 and HTTPS coverage
 
 ## Validation
 
@@ -339,11 +355,11 @@ Following the request for **Clear · Safe · Consistent · Observable · Maintai
 ## Performance
 
 Typical collection stats:
-- **Fetching**: 15-45 seconds (27 sources, 10 concurrent workers)
-- **Validation**: 3-8 minutes (50 concurrent workers, depends on proxy count)
-- **Total Runtime**: 5-15 minutes
+- **Fetching**: 20-60 seconds (37 sources, 10 concurrent workers)
+- **Validation**: 3-10 minutes (50 concurrent workers, depends on proxy count)
+- **Total Runtime**: 5-20 minutes
 - **Success Rate**: 10-25% of fetched proxies are valid (improved with new high-quality sources)
-- **Expected Volume**: 200-500+ validated proxies per run (2x-3x improvement)
+- **Expected Volume**: 300-800+ validated proxies per run (3x-5x improvement from expanded sources)
 
 ## Important Notes
 
