@@ -117,7 +117,7 @@ def export_https_proxies(proxies: list[ProxyInfo], output_dir: Path) -> int:
         Number of HTTPS-capable proxies exported
     """
     https_proxies = [p for p in proxies if p.https_works]
-    output_file = output_dir / "https_capable_proxies.txt"
+    output_file = output_dir / "https_proxies.txt"
 
     with open(output_file, "w") as f:
         if not https_proxies:
